@@ -166,38 +166,38 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     }
 
     public void playerMovement() {
-        if (arbKeys[Input.Keys.UP]) {
+        if (arbKeys[Input.Keys.W]) {
             //nPos = 1;
             camera.translate(0f, 1f);
             nY += 1;
-            if (arbKeys[Input.Keys.LEFT]) {
+            if (arbKeys[Input.Keys.A]) {
                 nPos = 1;
                 nX -= 1;
                 camera.translate(-1f, 0f);
-            } else if (arbKeys[Input.Keys.RIGHT]) {
+            } else if (arbKeys[Input.Keys.D]) {
                 nPos = 0;
                 nX += 1;
                 camera.translate(1f, 0f);
 
             }
-        } else if (arbKeys[Input.Keys.DOWN]) {
+        } else if (arbKeys[Input.Keys.S]) {
             //nPos = 4;
             nY -= 1;
             camera.translate(0f, -1f);
-            if (arbKeys[Input.Keys.LEFT]) {
+            if (arbKeys[Input.Keys.A]) {
                 nPos = 1;
                 nX -= 1;
                 camera.translate(-1f, 0f);
-            } else if (arbKeys[Input.Keys.RIGHT]) {
+            } else if (arbKeys[Input.Keys.D]) {
                 nPos = 0;
                 nX += 1;
                 camera.translate(1f, 0f);
             }
-        } else if (arbKeys[Input.Keys.LEFT]) {
+        } else if (arbKeys[Input.Keys.A]) {
             nPos = 1;
             nX -= 1;
             camera.translate(-1f, 0f);
-        } else if (arbKeys[Input.Keys.RIGHT]) {
+        } else if (arbKeys[Input.Keys.D]) {
             nPos = 0;
             nX += 1;
             camera.translate(1f, 0f);
