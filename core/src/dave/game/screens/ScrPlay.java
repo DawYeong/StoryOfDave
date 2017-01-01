@@ -1,5 +1,7 @@
 package dave.game.screens;
 
+import box2dLight.PointLight;
+import box2dLight.RayHandler;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -38,7 +40,7 @@ import dave.game.TbMenu;
 import dave.game.TbsGUI;
 import dave.game.TbsHotbar;
 import dave.game.TbsMenu;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by luke on 2016-04-05.
@@ -54,7 +56,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     BitmapFont screenName;
     Texture img;
     Sprite sprVlad, sprLogic;
-    Random ranGen = new Random(1);
+    Random ranGen = new Random();
     Texture txSheet, txBackground, txTemp, txOne, txShadow, txWater, txInvIcon;
     Animation araniVlad[];
     TextureRegion trTemp, trHouse;// a single temporary texture region
@@ -93,6 +95,13 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     String sItem[] = new String[5];
     String sIcon[] = new String[4];
 
+    private RayHandler rayHandler;
+    private PointLight torchLight, sun;
+    private float time;
+    private boolean day = false;
+    int nTimeFrame, nSeconds, nMinutes, nHours, nDays, nItemsTotal;
+    //Day Night cycle source: http://pastie.org/private/8qpksvi8wy9gntolvtya
+
     public ScrPlay(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
     }
@@ -123,7 +132,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         TiledObjectUtil.parseTiledObjectLayer(world, map.getLayers().get("Object Layer 1").getObjects());
 
-        player = createBox(500, 1200, 13, 27, false);
+        player = createBox(ranGen.nextInt((800 - 500) + 1) + 500, ranGen.nextInt((1600 - 1200) + 1) + 1200, 13, 27, false);
         platform = createBox(0, 0, 64, 32, true);
 
         nFrame = 0;
@@ -135,6 +144,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         araniVlad = new Animation[18];
         playerSprite(5.2f);
 
+        //All of the GUI setup
         font = new BitmapFont();
         nStamina = 200;
         nHealth = 200;
@@ -181,6 +191,20 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                 nItemY = 198;
             }
         }
+        //Day Night cycle setup
+        rayHandler = new RayHandler(world);
+
+        torchLight = new PointLight(rayHandler, 100, Color.ORANGE, 0.5f, 0, 0);
+        torchLight.setSoftnessLength(0f);
+        torchLight.setXray(true);
+        torchLight.setActive(false);
+
+        // 0 is dark
+        // 1 is bright
+        sun = new PointLight(rayHandler, 100, new Color(255, 255, 255, 0.5f), 300, 400, 400);
+        sun.setActive(false);
+        sun.setXray(true);
+        time = 1f;
 
         setupGUI();
         btnInvListener();
@@ -196,8 +220,25 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         update(Gdx.graphics.getDeltaTime());
         Gdx.gl.glClearColor(0, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        if (nAction == 0) {
+            txSheet = new Texture("playerSprite.png");
+        } else if(nAction == 5) {
+            txSheet = new Texture("playerSpriteTorch.png");
+            torchLight.setActive(true);       
+        }else if(nAction == 1) {
+            txSheet = new Texture("playerSpriteSword.png");
+        }
+        if(nAction != 5) {
+            torchLight.setActive(false);    
+        }
         frameAnimation();
         trTemp = araniVlad[nPos].getKeyFrame(nFrame, true);
+//        if(nAction == 0) {
+//            txSheet = new Texture("playerSprite.png");
+//        }
+        daynight();
+        updateItems();
+        gameTime();
         batch.begin();
         batch.draw(txWater, -129, -135, 32, 32, 2500, 2500); // makes water
         batch.end();
@@ -208,7 +249,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         batch.draw(txInvIcon, fInvPosX - 32, fInvPosY - 32);
         batch.end();
         treeRender.render();
-        b2dr.render(world, camera.combined.scl(PPM));
+        rayHandler.render();
+        //b2dr.render(world, camera.combined.scl(PPM));
         statsBars();
         addItems();
         stage.act();
@@ -247,6 +289,9 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         map.dispose();
         trees.dispose();
         stage.dispose();
+        rayHandler.dispose();
+        torchLight.dispose();
+        sun.dispose();
 
     }
 
@@ -254,6 +299,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         world.step(1 / 60f, 6, 2);
         inputUpdate(delta);
         cameraUpdate(delta);
+        rayHandler.update();
 
         tmr.setView(camera);
         treeRender.setView(camera);
@@ -284,6 +330,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                 tbHotbar[i].setChecked(false);
             }
         }
+        if (Gdx.input.isKeyPressed(Input.Keys.F)) {
+            nAction = 5;
+        }
+        
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 
             if (isStaminaBuffer == false) {
@@ -305,7 +355,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                     isStaminaBuffer = false;
                 }
                 fSpeed = 1.5f;
-                playerSprite(3.6f);
+                playerSprite(5.2f);
             }
         } else {
             fSpeed = 1.5f;
@@ -324,8 +374,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
     public void cameraUpdate(float delta) {
         Vector3 position = camera.position;
-        position.x = player.getPosition().x * PPM;
-        position.y = player.getPosition().y * PPM;
+        position.x = camera.position.x + (player.getPosition().x * PPM - camera.position.x) * .1f;
+        position.y = camera.position.y + (player.getPosition().y * PPM - camera.position.y) * .1f;
         camera.position.set(position);
 
         camera.update();
@@ -448,6 +498,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         tbHotbar[1].addListener(new ChangeListener() {
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 System.out.println("Pickaxe");
+
                 nAction = 2;
 
             }
@@ -538,7 +589,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         tbInv[1] = new TbGUI("", tbsGUI, 200, 262);
 
         tbsGUI = new TbsGUI("journalInventory");
-        tbJournal[1] = new TbGUI("Days survived: \n\nTime played: \n\nItems Collected: ", tbsGUI, 200, 262);
+        tbJournal[1] = new TbGUI("Days survived: \n\n Time played: \n\nItems Collected: ", tbsGUI, 200, 262);
 
         tbsGUI = new TbsGUI("Journal");
         tbJournal[0] = new TbGUI("Journal", tbsGUI, 64, 64);
@@ -605,4 +656,55 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         }
     }
 
+    public void daynight() {
+        // Very simple if statement that will repeat count from 0..1..0..
+        // if Day time make light brighter 
+        if (day) {
+            time += Gdx.graphics.getDeltaTime() / 100; // divide by 100 to slow down
+            if (time > 1) {
+                day = false;
+            }
+            // if Night make light dimmer
+        } else {
+            time -= Gdx.graphics.getDeltaTime() / 100;
+            if (time < 0.1f) {
+                day = true;
+                nDays++;
+            }
+        }
+
+        // Set brightness to time
+        rayHandler.setAmbientLight(time);
+    }
+
+    public void updateItems() {
+        nItemsTotal = nItemNum[0] + nItemNum[1] + nItemNum[2] + nItemNum[3] + nItemNum[4];
+        for (int i = 0; i < 5; i++) {
+            tbItems[i].setText(sItem[i] + " x " + nItemNum[i]);
+        }
+        if (nSeconds < 10) {
+            tbJournal[1].setText("Days survived: " + nDays + " \n\n Time played: " + nHours
+                    + ":" + nMinutes + ":0" + nSeconds + "\n\nItems Collected: " + nItemsTotal);
+        } else {
+            tbJournal[1].setText("Days survived: " + nDays + " \n\n Time played: " + nHours
+                    + ":" + nMinutes + ":" + nSeconds + "\n\nItems Collected: " + nItemsTotal);
+        }
+
+    }
+
+    public void gameTime() {
+        nTimeFrame++;
+        if (nTimeFrame == 60) {
+            nSeconds++;
+            nTimeFrame = 0;
+        }
+        if (nSeconds == 60) {
+            nMinutes++;
+            nSeconds = 0;
+        }
+        if (nMinutes == 60) {
+            nHours++;
+            nMinutes = 0;
+        }
+    }
 }
