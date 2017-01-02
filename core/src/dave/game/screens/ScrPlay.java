@@ -132,7 +132,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         TiledObjectUtil.parseTiledObjectLayer(world, map.getLayers().get("Object Layer 1").getObjects());
 
-        player = createBox(ranGen.nextInt((800 - 500) + 1) + 500, ranGen.nextInt((1600 - 1200) + 1) + 1200, 13, 27, false);
+        player = createBox(ranGen.nextInt((600 - 500) + 1) + 500, ranGen.nextInt((1400 - 1200) + 1) + 1200, 13, 27, false);
         platform = createBox(0, 0, 64, 32, true);
 
         nFrame = 0;
@@ -225,8 +225,14 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         } else if(nAction == 5) {
             txSheet = new Texture("playerSpriteTorch.png");
             torchLight.setActive(true);       
-        }else if(nAction == 1) {
+        } else if(nAction == 1) {
             txSheet = new Texture("playerSpriteSword.png");
+        } else if(nAction == 2) {
+            txSheet = new Texture("playerSpritePick.png");
+        } else if(nAction == 3) {
+            txSheet = new Texture("playerSpriteAxe.png");
+        } else if(nAction == 4) {
+            txSheet = new Texture("playerSpriteHam.png");
         }
         if(nAction != 5) {
             torchLight.setActive(false);    
