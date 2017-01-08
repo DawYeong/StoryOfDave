@@ -24,7 +24,7 @@ public class ScrControls implements Screen, InputProcessor {
     Stage stage;
     SpriteBatch batch;
     BitmapFont screenName;
-    Texture txMenu, txWASD, txMouse;
+    Texture txMenu, txControls;
 
     public ScrControls(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
@@ -36,8 +36,7 @@ public class ScrControls implements Screen, InputProcessor {
         batch = new SpriteBatch();
         screenName = new BitmapFont();
         txMenu = new Texture("menu.png");
-        txWASD = new Texture("wasd.png");
-        txMouse = new Texture("mouse.png");
+        txControls = new Texture("controls.png");
         tbMenu = new TbMenu("BACK", tbsMenu);
         tbMenu.setY(0);
         tbMenu.setX(0);
@@ -52,11 +51,8 @@ public class ScrControls implements Screen, InputProcessor {
         Gdx.gl.glClearColor(0, 0, 0, 1); //black background.
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         batch.begin();
-        batch.draw(txMenu,-2300, -1550, Gdx.graphics.getWidth()*8, Gdx.graphics.getHeight()*8);
-        batch.draw(txWASD,100,220);
-        batch.draw(txMouse,350,100);
-        screenName.draw(batch, "WASD to move player", 300, 250);
-        screenName.draw(batch, "Click to interact with various objects", 300, 75);
+        batch.draw(txMenu,-2600, -1550, Gdx.graphics.getWidth()*8, Gdx.graphics.getHeight()*8);
+        batch.draw(txControls,0,0);
         batch.end();
         stage.act();
         stage.draw();

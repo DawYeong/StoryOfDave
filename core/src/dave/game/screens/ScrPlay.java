@@ -27,6 +27,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -101,6 +102,11 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     private boolean day = false;
     int nTimeFrame, nSeconds, nMinutes, nHours, nDays, nItemsTotal;
     //Day Night cycle source: http://pastie.org/private/8qpksvi8wy9gntolvtya
+    
+    Sprite sprAction;
+    float fPlayX, fPlayY, fHitRadX, fHitRadY, fRad, fMouseY, fCurMouseX, fCurMouseY;
+    int nIconHit = 0, nGrowth = 0;
+    boolean isRadHit = false, isCollecting = false, isClicked;
 
     public ScrPlay(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
@@ -208,6 +214,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         setupGUI();
         btnInvListener();
+        
 
         //http://stackoverflow.com/questions/30902428/libgdx-stage-input-handling
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -220,33 +227,16 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         update(Gdx.graphics.getDeltaTime());
         Gdx.gl.glClearColor(0, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        if (nAction == 0) {
-            txSheet = new Texture("playerSprite.png");
-        } else if(nAction == 5) {
-            txSheet = new Texture("playerSpriteTorch.png");
-            torchLight.setActive(true);       
-        } else if(nAction == 1) {
-            txSheet = new Texture("playerSpriteSword.png");
-        } else if(nAction == 2) {
-            txSheet = new Texture("playerSpritePick.png");
-        } else if(nAction == 3) {
-            txSheet = new Texture("playerSpriteAxe.png");
-        } else if(nAction == 4) {
-            txSheet = new Texture("playerSpriteHam.png");
-        }
-        if(nAction != 5) {
-            torchLight.setActive(false);    
-        }
+        
+        actionSwitch();
         frameAnimation();
-        trTemp = araniVlad[nPos].getKeyFrame(nFrame, true);
-//        if(nAction == 0) {
-//            txSheet = new Texture("playerSprite.png");
-//        }
+        trTemp = araniVlad[nPos].getKeyFrame(nFrame, true);     
         daynight();
         updateItems();
         gameTime();
+        
         batch.begin();
-        batch.draw(txWater, -129, -135, 32, 32, 2500, 2500); // makes water
+        batch.draw(txWater, -129, -135, 32, 32, 2500, 2500); // makes water infinite
         batch.end();
         tmr.render();
         batch.begin();
@@ -254,6 +244,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         batch.draw(trTemp, player.getPosition().x * PPM - 16, player.getPosition().y * PPM - 16);
         batch.draw(txInvIcon, fInvPosX - 32, fInvPosY - 32);
         batch.end();
+        
         treeRender.render();
         rayHandler.render();
         //b2dr.render(world, camera.combined.scl(PPM));
@@ -425,9 +416,9 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     public void frameAnimation() {
         if (!Gdx.input.isKeyPressed(Input.Keys.W) && !Gdx.input.isKeyPressed(Input.Keys.D)
                 && !Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.S)) {
-            if (nPos == 0) {
+            if (nPos == 0 || (player.getLinearVelocity().x == 0 && player.getLinearVelocity().y == 0) ) {
                 nFrame = 0;
-            } else if (nPos == 1) {
+            } else if (nPos == 1 || (player.getLinearVelocity().x == 0 && player.getLinearVelocity().y == 0)) {
                 nFrame = 45; // I dont know why this works but it does.
                 // Resets 1st frame when player stopped
             }
@@ -712,5 +703,25 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             nHours++;
             nMinutes = 0;
         }
+    }
+    
+    public void actionSwitch() {
+        if (nAction == 0) {
+            txSheet = new Texture("playerSprite.png");
+        } else if(nAction == 5) {
+            txSheet = new Texture("playerSpriteTorch.png");
+            torchLight.setActive(true);       
+        } else if(nAction == 1) {
+            txSheet = new Texture("playerSpriteSword.png");
+        } else if(nAction == 2) {
+            txSheet = new Texture("playerSpritePick.png");
+        } else if(nAction == 3) {
+            txSheet = new Texture("playerSpriteAxe.png");
+        } else if(nAction == 4) {
+            txSheet = new Texture("playerSpriteHam.png");
+        }
+        if(nAction != 5) {
+            torchLight.setActive(false);    
+        }    
     }
 }
