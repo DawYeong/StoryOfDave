@@ -16,9 +16,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
@@ -27,13 +25,12 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import static utils.Constants.PPM;
+import static utils.Constants.*;
 import utils.TiledObjectUtil;
 import dave.game.GamMenu;
 import dave.game.TbGUI;
@@ -41,7 +38,6 @@ import dave.game.TbMenu;
 import dave.game.TbsGUI;
 import dave.game.TbsHotbar;
 import dave.game.TbsMenu;
-import java.util.*;
 
 /**
  * Created by luke on 2016-04-05.
@@ -51,62 +47,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     GamMenu gamMenu;
     TbsMenu tbsMenu;
     TbMenu tbMenu, tbGameover;
-    Stage stage;
-    ShapeRenderer SR;
-    SpriteBatch batch;
-    BitmapFont screenName;
-    Texture img;
-    Sprite sprVlad, sprLogic;
-    Random ranGen = new Random();
-    Texture txSheet, txBackground, txTemp, txOne, txShadow, txWater, txInvIcon;
-    Animation araniVlad[];
-    TextureRegion trTemp, trHouse;// a single temporary texture region
-    boolean[] arbKeys = new boolean[512];
-    int fW, fH, fSx, fSy; // height and width of SpriteSheet image - and the starting upper coordinates on the Sprite Sheet
-    int nFrame, nPos, nBar = 0, nBarWidth = 0;
-    final int gameWidth = 200;
-    final int gameHeight = 100;
-    int nX, nY;
-
-    float fSpeed;
-    float fAniSpeed;
-    float fInvPosX, fInvPosY;
-    private Box2DDebugRenderer b2dr;
-    private OrthographicCamera camera;
-    private OrthogonalTiledMapRenderer tmr, treeRender;
-    private TiledMap map, trees;
-    private World world;
-    private Body player, platform;
-
-    TbsHotbar tbsHotbar;
-    TbsGUI tbsGUI;
-    TbGUI tbGUI, tbHotbar[] = new TbGUI[4], tbInv[] = new TbGUI[2], tbItems[] = new TbGUI[5],
-            tbJournal[] = new TbGUI[2];
-
-    float PPM = 32;
-    int nInvY, nInvX, nItemY, nItemX;
-    int nStamina, nHealth, nThirst, nSanity;
-    int nAction;
-    int nItemNum[] = new int[5];
-    boolean isInvOpen = false;
-    boolean isJournalOpen = false;
-    InputMultiplexer multiplexer;
-    boolean isStaminaBuffer = false;
-    BitmapFont font;
-    String sItem[] = new String[5];
-    String sIcon[] = new String[4];
-
-    private RayHandler rayHandler;
-    private PointLight torchLight, sun;
-    private float time;
-    private boolean day = false;
-    int nTimeFrame, nSeconds, nMinutes, nHours, nDays, nItemsTotal;
-    //Day Night cycle source: http://pastie.org/private/8qpksvi8wy9gntolvtya
-    
-    Sprite sprAction;
-    float fPlayX, fPlayY, fHitRadX, fHitRadY, fRad, fMouseY, fCurMouseX, fCurMouseY;
-    int nIconHit = 0, nGrowth = 0;
-    boolean isRadHit = false, isCollecting = false, isClicked;
 
     public ScrPlay(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
@@ -115,6 +55,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     public void show() {
 
         batch = new SpriteBatch();
+        batchAction = new SpriteBatch();
 
         float nWScreen, nHScreen;
         nWScreen = Gdx.graphics.getWidth();
@@ -200,8 +141,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         //Day Night cycle setup
         rayHandler = new RayHandler(world);
 
-        torchLight = new PointLight(rayHandler, 100, Color.ORANGE, 0.5f, 0, 0);
-        torchLight.setSoftnessLength(0f);
+        torchLight = new PointLight(rayHandler, 100, Color.ORANGE, 3f, 0, 0);
         torchLight.setXray(true);
         torchLight.setActive(false);
 
@@ -214,7 +154,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         setupGUI();
         btnInvListener();
-        
+
+        sprAction = new Sprite(new Texture(Gdx.files.internal("sword.png")));
 
         //http://stackoverflow.com/questions/30902428/libgdx-stage-input-handling
         InputMultiplexer multiplexer = new InputMultiplexer();
@@ -227,31 +168,35 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         update(Gdx.graphics.getDeltaTime());
         Gdx.gl.glClearColor(0, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        
-        actionSwitch();
+
         frameAnimation();
-        trTemp = araniVlad[nPos].getKeyFrame(nFrame, true);     
+        trTemp = araniVlad[nPos].getKeyFrame(nFrame, true);
         daynight();
         updateItems();
         gameTime();
-        
         batch.begin();
-        batch.draw(txWater, -129, -135, 32, 32, 2500, 2500); // makes water infinite
+        batch.draw(txWater, -129, -135, 32, 32, 4000, 2500); // makes water infinite
         batch.end();
         tmr.render();
         batch.begin();
         batch.setProjectionMatrix(camera.combined);
         batch.draw(trTemp, player.getPosition().x * PPM - 16, player.getPosition().y * PPM - 16);
-        batch.draw(txInvIcon, fInvPosX - 32, fInvPosY - 32);
         batch.end();
-        
         treeRender.render();
-        rayHandler.render();
+        
+        if(nPos == 0) {
+            torchLight.setPosition(player.getPosition().x + (12/PPM), player.getPosition().y);    
+        } else if (nPos == 1) {
+            torchLight.setPosition(player.getPosition().x - (12/PPM), player.getPosition().y);
+        }
+        rayHandler.setCombinedMatrix(camera.combined.scl(PPM));
+        rayHandler.updateAndRender();
         //b2dr.render(world, camera.combined.scl(PPM));
         statsBars();
         addItems();
         stage.act();
         stage.draw();
+        actionSwitch();
         InvOpen();
     }
 
@@ -280,6 +225,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         world.dispose();
         b2dr.dispose();
         batch.dispose();
+        batchAction.dispose();
         SR.dispose();
         tmr.dispose();
         treeRender.dispose();
@@ -289,18 +235,17 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         rayHandler.dispose();
         torchLight.dispose();
         sun.dispose();
-
     }
 
     public void update(float delta) {
         world.step(1 / 60f, 6, 2);
         inputUpdate(delta);
         cameraUpdate(delta);
-        rayHandler.update();
 
         tmr.setView(camera);
         treeRender.setView(camera);
         batch.setProjectionMatrix(camera.combined);
+
     }
 
     public void inputUpdate(float delta) {
@@ -323,6 +268,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         }
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             nAction = 0;
+            Gdx.input.setCursorCatched(false);
+            Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
             for (int i = 0; i < 4; i++) {
                 tbHotbar[i].setChecked(false);
             }
@@ -330,7 +277,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         if (Gdx.input.isKeyPressed(Input.Keys.F)) {
             nAction = 5;
         }
-        
+
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 
             if (isStaminaBuffer == false) {
@@ -416,10 +363,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     public void frameAnimation() {
         if (!Gdx.input.isKeyPressed(Input.Keys.W) && !Gdx.input.isKeyPressed(Input.Keys.D)
                 && !Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.S)) {
-            if (nPos == 0 || (player.getLinearVelocity().x == 0 && player.getLinearVelocity().y == 0) ) {
+            if (nPos == 0) {
                 nFrame = 0;
-            } else if (nPos == 1 || (player.getLinearVelocity().x == 0 && player.getLinearVelocity().y == 0)) {
-                nFrame = 45; // I dont know why this works but it does.
+            } else if (nPos == 1) {
+                nFrame = 45; // I dont know why 45 works but it does.
                 // Resets 1st frame when player stopped
             }
         } else {
@@ -704,24 +651,67 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             nMinutes = 0;
         }
     }
-    
+
     public void actionSwitch() {
+        fMouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
         if (nAction == 0) {
             txSheet = new Texture("playerSprite.png");
-        } else if(nAction == 5) {
+        } else if (nAction == 5) {
             txSheet = new Texture("playerSpriteTorch.png");
-            torchLight.setActive(true);       
-        } else if(nAction == 1) {
+            torchLight.setActive(true);
+        } else if (nAction == 1) {
             txSheet = new Texture("playerSpriteSword.png");
-        } else if(nAction == 2) {
+            sprAction = new Sprite(new Texture(Gdx.files.internal("sword.png")));
+            batchAction.begin();
+            batchAction.draw(sprAction, Gdx.input.getX() - 32,
+                    fMouseY - 32, sprAction.getOriginX(),
+                    sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
+                    sprAction.getScaleX(), sprAction.getScaleY(), 0);
+            batchAction.end();
+            isClicked = true;
+            Gdx.input.setCursorCatched(true);
+        } else if (nAction == 2) {
             txSheet = new Texture("playerSpritePick.png");
-        } else if(nAction == 3) {
+            sprAction = new Sprite(new Texture(Gdx.files.internal("pickaxe.png")));
+            batchAction.begin();
+            batchAction.draw(sprAction, Gdx.input.getX() - 32,
+                    fMouseY - 32, sprAction.getOriginX(),
+                    sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
+                    sprAction.getScaleX(), sprAction.getScaleY(), 0
+            );
+            batchAction.end();
+            isClicked = true;
+            Gdx.input.setCursorCatched(true);
+        } else if (nAction == 3) {
             txSheet = new Texture("playerSpriteAxe.png");
-        } else if(nAction == 4) {
+            sprAction = new Sprite(new Texture(Gdx.files.internal("axe.png")));
+            batchAction.begin();
+            batchAction.draw(sprAction, Gdx.input.getX() - 32,
+                    fMouseY - 32, sprAction.getOriginX(),
+                    sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
+                    sprAction.getScaleX(), sprAction.getScaleY(), 0);
+            batchAction.end();
+            isClicked = true;
+            Gdx.input.setCursorCatched(true);
+        } else if (nAction == 4) {
             txSheet = new Texture("playerSpriteHam.png");
+            sprAction = new Sprite(new Texture(Gdx.files.internal("hammer.png")));
+            batchAction.begin();
+            batchAction.draw(sprAction, Gdx.input.getX() - 32,
+                    fMouseY - 32, sprAction.getOriginX(),
+                    sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
+                    sprAction.getScaleX(), sprAction.getScaleY(), 0);
+            batchAction.end();
+            isClicked = true;
+            Gdx.input.setCursorCatched(true);
         }
-        if(nAction != 5) {
-            torchLight.setActive(false);    
-        }    
+        if (nAction != 5) {
+            torchLight.setActive(false);
+        }
+
+        if (isClicked == true) {
+            fCurMouseX = Gdx.input.getX();
+            fCurMouseY = Gdx.input.getY();
+        }
     }
 }
