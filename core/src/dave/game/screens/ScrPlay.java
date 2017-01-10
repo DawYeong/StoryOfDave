@@ -47,6 +47,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     GamMenu gamMenu;
     TbsMenu tbsMenu;
     TbMenu tbMenu, tbGameover;
+    int nTorchFlicker;
+    int nTorchRange = ranGen.nextInt((30 - 1) + 1) + 1;
 
     public ScrPlay(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
@@ -80,7 +82,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         TiledObjectUtil.parseTiledObjectLayer(world, map.getLayers().get("Object Layer 1").getObjects());
 
         player = createBox(ranGen.nextInt((700 - 300) + 1) + 300, ranGen.nextInt((1500 - 1300) + 1) + 1300, 13, 27, false);
-        platform = createBox(0, 0, 64, 32, true);
+//        platform = createBox(0, 0, 64, 32, true);
 
         nFrame = 0;
         nPos = 0; // the position in the SpriteSheet - 0 to 7
@@ -713,6 +715,11 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         batchAction.end();
     }
     public void torchLightFlicker() {
-        torchLight.setDistance(time);
+        nTorchFlicker++;
+        nTorchRange = ranGen.nextInt((20 - 3) + 1) + 3; // Set random time range when flicker occurs
+        if(nTorchFlicker >= nTorchRange) {
+            torchLight.setDistance((float) Math.random() * (4 - 3) + 1); // Set random size
+            nTorchFlicker = 0;
+        }
     }
 }
