@@ -196,7 +196,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 //        rayHandler.setCombinedMatrix(camera.combined, camera.position.x * PPM, camera.position.y * PPM, camera.viewportWidth, 
 //                camera.viewportHeight);
         rayHandler.updateAndRender();
-        //b2dr.render(world, camera.combined.scl(PPM));
+        b2dr.render(world, camera.combined.scl(PPM));
         statsBars();
         addItems();
         stage.act();
@@ -268,20 +268,21 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             nHorizontalForce += 1;
             nPos = 0;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            nAction = 0;
-            for (int i = 0; i < 4; i++) {
-                tbHotbar[i].setChecked(false);
-            }
-        }
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            Gdx.input.setCursorCatched(false);
-            Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
+            if (nAction != 0) {
+                Gdx.input.setCursorCatched(false);
+                Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
+            }
+            nAction = 0;
+//            for (int i = 0; i < 4; i++) {
+//                tbHotbar[i].setChecked(false);
+//            }
         }
-        if(Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-            Gdx.input.setCursorCatched(false);
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.F)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            if (nAction != 5) {
+                Gdx.input.setCursorCatched(false);
+                Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
+            }
             nAction = 5;
         }
 
@@ -644,6 +645,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     }
 
     public void gameTime() {
+        //Controls for game time displayed in journal
         nTimeFrame++;
         if (nTimeFrame == 60) {
             nSeconds++;
@@ -660,6 +662,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     }
 
     public void actionSwitch() {
+        //This code switches the player sprite and cursor style when you switch weapons
         fMouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
         batchAction.begin();
         if (nAction == 0) {
@@ -674,7 +677,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                     fMouseY - 32, sprAction.getOriginX(),
                     sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
                     sprAction.getScaleX(), sprAction.getScaleY(), 0);
-            isClicked = true;
             Gdx.input.setCursorCatched(true);
         } else if (nAction == 2) {
             txSheet = new Texture("playerSpritePick.png");
@@ -683,7 +685,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                     fMouseY - 32, sprAction.getOriginX(),
                     sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
                     sprAction.getScaleX(), sprAction.getScaleY(), 0);
-            isClicked = true;
             Gdx.input.setCursorCatched(true);
         } else if (nAction == 3) {
             txSheet = new Texture("playerSpriteAxe.png");
@@ -692,7 +693,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                     fMouseY - 32, sprAction.getOriginX(),
                     sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
                     sprAction.getScaleX(), sprAction.getScaleY(), 0);
-            isClicked = true;
             Gdx.input.setCursorCatched(true);
         } else if (nAction == 4) {
             txSheet = new Texture("playerSpriteHam.png");
@@ -701,25 +701,25 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                     fMouseY - 32, sprAction.getOriginX(),
                     sprAction.getOriginY(), sprAction.getWidth() * 2, sprAction.getHeight() * 2,
                     sprAction.getScaleX(), sprAction.getScaleY(), 0);
-            isClicked = true;
             Gdx.input.setCursorCatched(true);
         }
         if (nAction != 5) {
             torchLight.setActive(false);
         }
+        fCurMouseX = Gdx.input.getX();
+        fCurMouseY = Gdx.input.getY();
 
-        if (isClicked == true) {
-            fCurMouseX = Gdx.input.getX();
-            fCurMouseY = Gdx.input.getY();
-        }
         batchAction.end();
     }
+
     public void torchLightFlicker() {
-        nTorchFlicker++;
-        nTorchRange = ranGen.nextInt((20 - 3) + 1) + 3; // Set random time range when flicker occurs
-        if(nTorchFlicker >= nTorchRange) {
-            torchLight.setDistance((float) Math.random() * (4 - 3) + 1); // Set random size
-            nTorchFlicker = 0;
+        if (torchLight.isActive()) {
+            nTorchFlicker++;
+            nTorchRange = ranGen.nextInt((20 - 3) + 1) + 3; // Set random time range when flicker occurs
+            if (nTorchFlicker >= nTorchRange) {
+                torchLight.setDistance((float) Math.random() * (4 - 3) + 1); // Set random size
+                nTorchFlicker = 0;
+            }
         }
     }
 }
