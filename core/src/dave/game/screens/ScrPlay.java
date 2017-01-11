@@ -49,6 +49,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     TbMenu tbMenu, tbGameover;
     int nTorchFlicker;
     int nTorchRange = ranGen.nextInt((30 - 1) + 1) + 1;
+    boolean isClicked = false;
 
     public ScrPlay(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
@@ -228,6 +229,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         b2dr.dispose();
         batch.dispose();
         batchAction.dispose();
+        txSheet.dispose();
         SR.dispose();
         tmr.dispose();
         treeRender.dispose();
@@ -619,7 +621,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             // if Night make light dimmer
         } else {
             time -= Gdx.graphics.getDeltaTime() / 100;
-            if (time < 0.1f) {
+            if (time < 0.001f) {
                 day = true;
                 nDays++;
             }
