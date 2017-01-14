@@ -96,10 +96,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         //All of the GUI setup
         font = new BitmapFont();
-        nStamina = 200;
-        nHealth = 200;
-        nThirst = 100;
-        nSanity = 100;
+        fStamina = 200;
+        fHealth = 100;
+        fThirst = 100;
+        fSanity = 100;
 
         sItem[0] = "stone";
         sItem[1] = "wood";
@@ -150,9 +150,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         // 0 is dark
         // 1 is bright
-        sun = new PointLight(rayHandler, 100, new Color(255, 255, 255, 0.5f), 300, 400, 400);
-        sun.setActive(false);
-        sun.setXray(true);
         time = 1f;
 
         setupGUI();
@@ -189,9 +186,9 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         treeRender.render();
 
         if (nPos == 0) {
-            torchLight.setPosition(player.getPosition().x + (12 / PPM), player.getPosition().y);
+            torchLight.setPosition(player.getPosition().x + (11 / PPM), player.getPosition().y);
         } else if (nPos == 1) {
-            torchLight.setPosition(player.getPosition().x - (12 / PPM), player.getPosition().y);
+            torchLight.setPosition(player.getPosition().x - (11 / PPM), player.getPosition().y);
         }
         rayHandler.setCombinedMatrix(camera.combined.scl(PPM));
 //        rayHandler.setCombinedMatrix(camera.combined, camera.position.x * PPM, camera.position.y * PPM, camera.viewportWidth, 
@@ -238,7 +235,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         stage.dispose();
         rayHandler.dispose();
         torchLight.dispose();
-        sun.dispose();
     }
 
     public void update(float delta) {
@@ -293,19 +289,19 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             if (isStaminaBuffer == false) {
                 fSpeed = 2.5f;
                 playerSprite(3.6f);
-                if (nStamina > 0) {
-                    nStamina--;
+                if (fStamina > 0) {
+                    fStamina--;
                 }
-                if (nStamina == 0) {
+                if (fStamina == 0) {
                     isStaminaBuffer = true;
 
                 }
             }
             if (isStaminaBuffer == true) {
-                if (nStamina < 200) {
-                    nStamina++;
+                if (fStamina < 200) {
+                    fStamina++;
                 }
-                if (nStamina == 200) {
+                if (fStamina == 200) {
                     isStaminaBuffer = false;
                 }
                 fSpeed = 1.5f;
@@ -314,10 +310,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         } else {
             fSpeed = 1.5f;
             playerSprite(5.2f);
-            if (nStamina < 200) {
-                nStamina++;
+            if (fStamina < 200) {
+                fStamina++;
             }
-            if (nStamina == 200) {
+            if (fStamina == 200) {
                 isStaminaBuffer = false;
             }
 
@@ -575,22 +571,30 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
     public void statsBars() {
         SR.begin(ShapeRenderer.ShapeType.Filled);
-        if (nHealth <= 75) {
+        if (fHealth <= 40) {
             SR.setColor(Color.FIREBRICK);
         } else {
             SR.setColor(Color.RED);
         }
-        SR.rect(35, Gdx.graphics.getHeight() - 32, nHealth, 15);
+        SR.rect(35, Gdx.graphics.getHeight() - 32, fHealth * 2, 15);
         if (isStaminaBuffer) {
             SR.setColor(Color.ROYAL);
         } else if (!isStaminaBuffer) {
             SR.setColor(Color.LIME);
         }
-        SR.rect(35, Gdx.graphics.getHeight() - 32 - 7, nStamina, 5);
-        SR.setColor(Color.SKY);
-        SR.rect(35, Gdx.graphics.getHeight() - 69, nThirst, 10);
-        SR.setColor(Color.YELLOW);
-        SR.rect(35, Gdx.graphics.getHeight() - 105, nSanity, 10);
+        SR.rect(35, Gdx.graphics.getHeight() - 32 - 7, fStamina, 5);
+        if (fThirst <= 40) {
+            SR.setColor(Color.SKY);
+        } else {
+            SR.setColor(Color.valueOf("#0080ff"));
+        }
+        SR.rect(35, Gdx.graphics.getHeight() - 69, fThirst * 2, 10);
+        if (fSanity <= 40) {
+            SR.setColor(Color.valueOf("#ffce89"));
+        } else {
+            SR.setColor(Color.YELLOW);
+        }
+        SR.rect(35, Gdx.graphics.getHeight() - 105, fSanity * 2, 10);
         SR.end();
     }
 
@@ -617,13 +621,13 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             time += Gdx.graphics.getDeltaTime() / 100; // divide by 100 to slow down
             if (time > 1) {
                 day = false;
+                nDays++;
             }
             // if Night make light dimmer
         } else {
             time -= Gdx.graphics.getDeltaTime() / 100;
             if (time < 0.001f) {
                 day = true;
-                nDays++;
             }
         }
 
@@ -717,9 +721,9 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     public void torchLightFlicker() {
         if (torchLight.isActive()) {
             nTorchFlicker++;
-            nTorchRange = ranGen.nextInt((20 - 3) + 1) + 3; // Set random time range when flicker occurs
+            nTorchRange = ranGen.nextInt((30 - 3) + 1) + 3; // Set random time range when flicker occurs
             if (nTorchFlicker >= nTorchRange) {
-                torchLight.setDistance((float) Math.random() * (4 - 3) + 1); // Set random size
+                torchLight.setDistance((float) Math.random() * (4 - 3.5f) + 1); // Set random size
                 nTorchFlicker = 0;
             }
         }

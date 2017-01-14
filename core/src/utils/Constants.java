@@ -58,7 +58,7 @@ public final class Constants {
     public static TbGUI tbGUI, tbHotbar[] = new TbGUI[4], tbInv[] = new TbGUI[2], tbItems[] = new TbGUI[5],
             tbJournal[] = new TbGUI[2];
     public static int nInvY, nInvX, nItemY, nItemX;
-    public static int nStamina, nHealth, nThirst, nSanity;
+    public static float fStamina, fHealth, fThirst, fSanity;
     public static int nAction;
     public static int nItemNum[] = new int[5];
     public static boolean isInvOpen = false;
@@ -70,7 +70,7 @@ public final class Constants {
     public static String sIcon[] = new String[4];
 
     public static  RayHandler rayHandler;
-    public static  PointLight torchLight, sun;
+    public static  PointLight torchLight;
     public static  float time;
     public static  boolean day = false;
     public static int nTimeFrame, nSeconds, nMinutes, nHours, nDays, nItemsTotal;
