@@ -89,6 +89,8 @@ public class ScrControls implements Screen, InputProcessor {
 
     @Override
     public void dispose() {
+        txMenu.dispose();
+        txControls.dispose();
 
     }
 

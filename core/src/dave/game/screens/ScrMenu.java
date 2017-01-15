@@ -102,7 +102,7 @@ public class ScrMenu implements Screen, InputProcessor {
 
     @Override
     public void dispose() {
-
+        txMenu.dispose();
     }
 
     @Override

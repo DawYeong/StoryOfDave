@@ -33,7 +33,7 @@ public final class Constants {
     public static Texture img;
     public static Sprite sprVlad, sprLogic;
     public static Random ranGen = new Random();
-    public static Texture txSheet, txBackground, txTemp, txOne, txShadow, txWater, txInvIcon;
+    public static Texture txSheet, txBackground, txTemp, txOne, txShadow, txWater;
     public static Animation araniVlad[];
     public static TextureRegion trTemp, trHouse;// a single temporary texture region
     public static boolean[] arbKeys = new boolean[512];

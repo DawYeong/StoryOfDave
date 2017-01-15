@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.MathUtils;
+import static com.badlogic.gdx.math.MathUtils.random;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -49,7 +50,9 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     TbMenu tbMenu, tbGameover;
     int nTorchFlicker;
     int nTorchRange = ranGen.nextInt((30 - 1) + 1) + 1;
+    boolean isMining = false, isCutting, isBuilding;
     boolean isClicked = false;
+    int nGrowth = 0, nLuck;
 
     public ScrPlay(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
@@ -89,7 +92,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         nPos = 0; // the position in the SpriteSheet - 0 to 7
         txSheet = new Texture("playerSprite.png");
         txWater = new Texture("water.png");
-        txInvIcon = new Texture("inventoryIcon.png");
         txWater.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         araniVlad = new Animation[18];
         playerSprite(5.2f);
@@ -200,6 +202,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         stage.act();
         stage.draw();
         actionSwitch();
+        Mining();
         InvOpen();
     }
 
@@ -226,7 +229,15 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         b2dr.dispose();
         batch.dispose();
         batchAction.dispose();
+
         txSheet.dispose();
+        img.dispose();
+        txBackground.dispose();
+        txTemp.dispose();
+        txOne.dispose();
+        txShadow.dispose();
+        txWater.dispose();
+
         SR.dispose();
         tmr.dispose();
         treeRender.dispose();
@@ -251,37 +262,21 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     public void inputUpdate(float delta) {
         int nHorizontalForce = 0;
         int nVerticalForce = 0;
-
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            nVerticalForce += 1;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            nVerticalForce -= 1;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            nHorizontalForce -= 1;
-            nPos = 1;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            nHorizontalForce += 1;
-            nPos = 0;
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            if (nAction != 0) {
-                Gdx.input.setCursorCatched(false);
-                Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
+        if (!isMining) {
+            if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+                nVerticalForce += 1;
             }
-            nAction = 0;
-//            for (int i = 0; i < 4; i++) {
-//                tbHotbar[i].setChecked(false);
-//            }
-        }
-        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
-            if (nAction != 5) {
-                Gdx.input.setCursorCatched(false);
-                Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
+            if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+                nVerticalForce -= 1;
             }
-            nAction = 5;
+            if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+                nHorizontalForce -= 1;
+                nPos = 1;
+            }
+            if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+                nHorizontalForce += 1;
+                nPos = 0;
+            }
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
@@ -320,6 +315,23 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         }
         player.setLinearVelocity(nHorizontalForce * fSpeed, player.getLinearVelocity().y);
         player.setLinearVelocity(player.getLinearVelocity().x, nVerticalForce * fSpeed);
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            if (nAction != 0) {
+                Gdx.input.setCursorCatched(false);
+                Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
+            }
+            nAction = 0;
+//            for (int i = 0; i < 4; i++) {
+//                tbHotbar[i].setChecked(false);
+//            }
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.F)) {
+            if (nAction != 5) {
+                Gdx.input.setCursorCatched(false);
+                Gdx.input.setCursorPosition((int) fCurMouseX, (int) fCurMouseY);
+            }
+            nAction = 5;
+        }
     }
 
     public void cameraUpdate(float delta) {
@@ -367,21 +379,24 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     }
 
     public void frameAnimation() {
-        if (!Gdx.input.isKeyPressed(Input.Keys.W) && !Gdx.input.isKeyPressed(Input.Keys.D)
-                && !Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.S)) {
-            if (nPos == 0) {
-                nFrame = 0;
-            } else if (nPos == 1) {
-                nFrame = 45; // I dont know why 45 works but it does.
-                // Resets 1st frame when player stopped
+        if (!isMining) {
+            if (!Gdx.input.isKeyPressed(Input.Keys.W) && !Gdx.input.isKeyPressed(Input.Keys.D)
+                    && !Gdx.input.isKeyPressed(Input.Keys.A) && !Gdx.input.isKeyPressed(Input.Keys.S)) {
+                if (nPos == 0) {
+                    nFrame = 0;
+                } else if (nPos == 1) {
+                    nFrame = 45; // I dont know why 45 works but it does.
+                    // Resets 1st frame when player stopped
+                }
+            } else {
+                nFrame++;
             }
-        } else {
-            nFrame++;
         }
     }
 
     @Override
     public boolean keyDown(int keycode) {
+        isMining = false;
         return false;
     }
 
@@ -397,6 +412,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        if (nAction == 2) {
+            isMining = true;
+            player.setLinearVelocity(0, 0);
+        }
         return false;
     }
 
@@ -712,6 +731,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         if (nAction != 5) {
             torchLight.setActive(false);
         }
+        if (nAction != 2) {
+            isMining = false;
+        }
+
         fCurMouseX = Gdx.input.getX();
         fCurMouseY = Gdx.input.getY();
 
@@ -727,5 +750,31 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                 nTorchFlicker = 0;
             }
         }
+    }
+
+    public void Mining() {
+        if (isMining) {
+            txSheet = new Texture("playerActionMine.png");
+            nFrame++;
+            nGrowth++;
+            SR.begin(ShapeRenderer.ShapeType.Filled);
+            SR.setColor(1, 1, 0, 1);
+            SR.rect(525, 50, nGrowth, 20);
+            SR.end();
+            if (nGrowth == 100) {
+                //isCollecting = false;
+                nLuck = random.nextInt(10) + 1;
+                if (nLuck >= 1) {
+                    nItemNum[0]++;
+                    if (nLuck == 5) {
+                        nItemNum[2]++;
+                    }
+                }
+                nGrowth = 0;
+            }
+        } else {
+            nGrowth = 0;
+        }
+
     }
 }
