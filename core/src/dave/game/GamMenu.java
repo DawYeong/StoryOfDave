@@ -17,12 +17,12 @@ public class GamMenu extends Game {
     ScrPlay scrPlay;
     ScrGameover scrGameover;
     ScrControls scrControls;
-    int nScreen; // 0 for menu, 1 for play, and 2 for game over
+    public static int nScreen; // 0 for menu, 1 for play, and 2 for game over
 
     
     public void updateState(int _nScreen) {
         nScreen = _nScreen;
-        if ( nScreen == 0) {
+        if (nScreen == 0) {
             setScreen(scrMenu);
         } else if (nScreen == 1) {
             setScreen(scrPlay);

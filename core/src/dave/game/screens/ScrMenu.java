@@ -40,7 +40,7 @@ public class ScrMenu implements Screen, InputProcessor {
         batch = new SpriteBatch();
         screenName = new BitmapFont();
         txMenu = new Texture("menu.png");
-        tbPlay = new TbMenu("Play", tbsMenu);
+        tbPlay = new TbMenu("Begin Dave's Story", tbsMenu);
         tbGameover = new TbMenu("Controls", tbsMenu);
         tbGameover.setY(Gdx.graphics.getHeight() / 2 - (tbGameover.getHeight() / 2) - 75);
         tbGameover.setX(Gdx.graphics.getWidth() / 3 - (tbGameover.getWidth() / 2));

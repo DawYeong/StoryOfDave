@@ -43,6 +43,9 @@ import dave.game.TbsGUI;
 import dave.game.TbsHotbar;
 import dave.game.TbsMenu;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by luke on 2016-04-05.
@@ -67,9 +70,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     float fSpeed;
     float fAniSpeed;
     float fInvPosX, fInvPosY;
-    
+
     int nInvY, nInvX, nItemY, nItemX;
-    float fStamina, fHealth, fThirst, fSanity;
+    float fStamina, fThirst, fSanity, fHealth;
+    
     int nAction;
     int nItemNum[] = new int[7];
     boolean isInvOpen = false;
@@ -93,7 +97,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     float fPlayX, fPlayY, fHitRadX, fHitRadY, fRad, fMouseY, fCurMouseX, fCurMouseY;
     int nIconHit = 0;
     boolean isRadHit = false, isCollecting = false;
-    
+
     int nTorchFlicker;
     int nTorchRange = ranGen.nextInt((30 - 1) + 1) + 1;
     boolean isMining = false, isCutting, isBuilding;
@@ -109,7 +113,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     boolean torchPlace;
     boolean isSane;
     Texture txGroundTorch;
-    
+
     float Game_Width = 640;
     float Game_Height = 480;
     Viewport viewport;
@@ -146,10 +150,9 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         TiledObjectUtil.parseTiledObjectLayer(world, map.getLayers().get("Object Layer 1").getObjects());
 
         player = createBox(ranGen.nextInt((700 - 300) + 1) + 300, ranGen.nextInt((1500 - 1300) + 1) + 1300, 13, 5, false);
-        shadowDave = createBox(100,100,13,5,false);
-        
-//        platform = createBox(0, 0, 64, 32, true);
+        shadowDave = createBox(100, 100, 13, 5, false);
 
+//        platform = createBox(0, 0, 64, 32, true);
         nFrame = 0;
         nPos = 0; // the position in the SpriteSheet - 0 to 7
         txSheet = new Texture("playerSprite.png");
@@ -181,6 +184,10 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         Gdx.input.setInputProcessor(multiplexer);
         multiplexer.addProcessor(this);
         multiplexer.addProcessor(stage);
+        if(oneTime == true) {
+            gameTime();
+            oneTime = false;
+        }
     }
 
     public void render(float delta) {
@@ -192,7 +199,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         trTemp = araniVlad[nPos].getKeyFrame(nFrame, true);
         daynight();
         updateItems();
-        gameTime();
         torchLightFlicker();
 //        System.out.println("X = " + Gdx.input.getX()+ ", Y = " + (Gdx.graphics.getHeight() - Gdx.input.getY()));
 //        System.out.println("PLAYER X = " + player.getPosition().x * PPM + ", PLAYER Y = " + player.getPosition().y * PPM);
@@ -224,6 +230,9 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         InvOpen();
         addItems();
         sanity();
+        Death();
+        //Test death screen
+        //hitDamage(0.5f);
     }
 
     @Override
@@ -510,74 +519,74 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                 nAction = 4;
             }
         });
-//        tbInv[0].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbInv[0].remove();
-//                stage.addActor(tbInv[1]);
-//                isInvOpen = true;
-//                isJournalOpen = false;
-//                isBuildingOpen = false;
-//                isCraftingOpen = false;
-//            }
-//        });
-//        tbInv[1].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbInv[1].remove();
-//                stage.addActor(tbInv[0]);
-//                isInvOpen = false;
-//            }
-//        });
-//        tbJournal[0].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbJournal[0].remove();
-//                stage.addActor(tbJournal[1]);
-//                isJournalOpen = true;
-//                isInvOpen = false;
-//                isBuildingOpen = false;
-//                isCraftingOpen = false;
-//            }
-//        });
-//        tbJournal[1].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbJournal[1].remove();
-//                stage.addActor(tbJournal[0]);
-//                isJournalOpen = false;
-//            }
-//        });
-//        tbCraft[0].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbCraft[0].remove();
-//                stage.addActor(tbCraft[1]);
-//                isJournalOpen = false;
-//                isInvOpen = false;
-//                isBuildingOpen = false;
-//                isCraftingOpen = true;
-//            }
-//        });
-//        tbCraft[1].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbCraft[1].remove();
-//                stage.addActor(tbCraft[0]);
-//                isCraftingOpen = false;
-//            }
-//        });
-//        tbBuild[0].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbBuild[0].remove();
-//                stage.addActor(tbBuild[1]);
-//                isJournalOpen = false;
-//                isInvOpen = false;
-//                isBuildingOpen = true;
-//                isCraftingOpen = false;
-//            }
-//        });
-//        tbBuild[1].addListener(new ChangeListener() {
-//            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-//                tbBuild[1].remove();
-//                stage.addActor(tbBuild[0]);
-//                isBuildingOpen = false;
-//            }
-//        });
+        /*tbInv[0].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbInv[0].remove();
+                stage.addActor(tbInv[1]);
+                isInvOpen = true;
+                isJournalOpen = false;
+                isBuildingOpen = false;
+                isCraftingOpen = false;
+            }
+        });
+        tbInv[1].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbInv[1].remove();
+                stage.addActor(tbInv[0]);
+                isInvOpen = false;
+            }
+        });
+        tbJournal[0].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbJournal[0].remove();
+                stage.addActor(tbJournal[1]);
+                isJournalOpen = true;
+                isInvOpen = false;
+                isBuildingOpen = false;
+                isCraftingOpen = false;
+            }
+        });
+        tbJournal[1].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbJournal[1].remove();
+                stage.addActor(tbJournal[0]);
+                isJournalOpen = false;
+            }
+        });
+        tbCraft[0].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbCraft[0].remove();
+                stage.addActor(tbCraft[1]);
+                isJournalOpen = false;
+                isInvOpen = false;
+                isBuildingOpen = false;
+                isCraftingOpen = true;
+            }
+        });
+        tbCraft[1].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbCraft[1].remove();
+                stage.addActor(tbCraft[0]);
+                isCraftingOpen = false;
+            }
+        });
+        tbBuild[0].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbBuild[0].remove();
+                stage.addActor(tbBuild[1]);
+                isJournalOpen = false;
+                isInvOpen = false;
+                isBuildingOpen = true;
+                isCraftingOpen = false;
+            }
+        });
+        tbBuild[1].addListener(new ChangeListener() {
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                tbBuild[1].remove();
+                stage.addActor(tbBuild[0]);
+                isBuildingOpen = false;
+            }
+        });*/
         tbItems[5].addListener(new ChangeListener() {
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
                 if (nItemNum[5] > 0 && fHealth < 100) {
@@ -983,19 +992,21 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
     public void gameTime() {
         //Controls for game time displayed in journal
-        nTimeFrame++;
-        if (nTimeFrame == 60) {
-            nSeconds++;
-            nTimeFrame = 0;
-        }
-        if (nSeconds == 60) {
-            nMinutes++;
-            nSeconds = 0;
-        }
-        if (nMinutes == 60) {
-            nHours++;
-            nMinutes = 0;
-        }
+        final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        service.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                nSeconds++;
+                if (nSeconds == 60) {
+                    nMinutes++;
+                    nSeconds = 0;
+                }
+                if (nMinutes == 60) {
+                    nHours++;
+                    nMinutes = 0;
+                }
+            }
+        }, 0, 1, TimeUnit.SECONDS);
     }
 
     public void actionSwitch() {
@@ -1075,8 +1086,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             SR.end();
             if (nGrowth == 60) {
                 isSane = false;
-                nInsanity ++;
-                if(nInsanity > 10) {
+                nInsanity++;
+                if (nInsanity > 10) {
                     fSanity -= 0.5f;
                 }
                 //isCollecting = false;
@@ -1104,25 +1115,49 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     public void hitDamage(float fDamage) {
         if (fArmor > 0) {
             fArmor -= fDamage;
-            if(fArmor < 0) {
+            if (fArmor < 0) {
                 fArmor = 0;
             }
         } else if (fHealth > 0) {
             fHealth -= fDamage;
-            if(fHealth < 0) {
+            if (fHealth < 0) {
                 fHealth = 0;
             }
         }
     }
-    
+
     public void sanity() {
-        if(isSane == true) {
-            nSane ++;
-            if(nSane >= 1000 && fSanity <= 100) {
+        if (isSane == true) {
+            nSane++;
+            if (nSane >= 1000 && fSanity <= 100) {
                 fSanity += 0.01f;
             }
-        } else if(isSane == false) {
+        } else if (isSane == false) {
             nSane = 0;
+        }
+    }
+
+    public void Death() {
+        if (fHealth <= 0) {
+            Gdx.input.setCursorCatched(false);
+            nAction = 0;
+            sFinalTime = "You spent " + nHours + " hr, " + nMinutes + " min and " + nSeconds + " sec in Dave's Story";
+            sFinalDays = "You survived " + nDays + " days.";
+            sFinalItems = "You had " + nItemsTotal + " items.";
+            
+            nHours = 0;
+            nMinutes = 0;
+            nSeconds = 0;
+            for(int i = 0; i < nItemNum.length; i++) {
+                nItemNum[i] = 0;
+            }
+            fHealth = 100;
+            fArmor = 0;
+            fSanity = 100;
+            fStamina = 100;
+            fThirst = 100;
+            
+            gamMenu.updateState(2);
         }
     }
 }
