@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import dave.game.GamMenu;
 import dave.game.TbMenu;
 import dave.game.TbsMenu;
+import static utils.Constants.*;
 
 import java.awt.Font;
 
@@ -67,7 +68,9 @@ public class ScrMenu implements Screen, InputProcessor {
     public void btnPlayListener() {
         tbPlay.addListener(new ChangeListener() {
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
-
+                nHours = 0;
+                nMinutes = 0;
+                nSeconds = 0;
                 gamMenu.updateState(1); // switch to Play screen.
             }
         });

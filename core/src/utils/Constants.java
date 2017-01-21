@@ -41,4 +41,5 @@ public final class Constants {
 
     public static String sFinalTime, sFinalDays, sFinalItems;
     public static boolean oneTime = true;
+    public static int nSeconds, nMinutes, nHours;
 }

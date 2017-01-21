@@ -90,7 +90,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     PointLight torchLight;
     float time;
     boolean day = false;
-    int nTimeFrame, nSeconds, nMinutes, nHours, nDays, nItemsTotal;
+    public static int nTimeFrame, nDays, nItemsTotal;
     //Day Night cycle source: http://pastie.org/private/8qpksvi8wy9gntolvtya
 
     Sprite sprAction;
@@ -232,7 +232,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         sanity();
         Death();
         //Test death screen
-        //hitDamage(0.5f);
+        //hitDamage(0.1f);
     }
 
     @Override
