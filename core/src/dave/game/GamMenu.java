@@ -1,5 +1,6 @@
 package dave.game;
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import dave.game.screens.ScrControls;
 import dave.game.screens.ScrMenu;
 import dave.game.screens.ScrPlay;
@@ -17,6 +18,7 @@ public class GamMenu extends Game {
     ScrGameover scrGameover;
     ScrControls scrControls;
     int nScreen; // 0 for menu, 1 for play, and 2 for game over
+
     
     public void updateState(int _nScreen) {
         nScreen = _nScreen;
