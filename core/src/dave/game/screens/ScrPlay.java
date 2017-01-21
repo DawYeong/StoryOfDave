@@ -117,6 +117,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     float Game_Width = 640;
     float Game_Height = 480;
     Viewport viewport;
+    int nThirstBuffer = 0;
 
     public ScrPlay(GamMenu _gamMenu) {  //Referencing the main class.
         gamMenu = _gamMenu;
@@ -230,6 +231,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         InvOpen();
         addItems();
         sanity();
+        thirst();
         Death();
         //Test death screen
         //hitDamage(0.1f);
@@ -311,7 +313,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
 
-            if (isStaminaBuffer == false) {
+            if (isStaminaBuffer == false && fThirst > 0) {
                 fSpeed = 2.5f - fArmorSpeed;
                 playerSprite(3.6f - fArmorSpeed);
                 if (fStamina > 0) {
@@ -592,6 +594,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
                 if (nItemNum[5] > 0 && fHealth < 100) {
                     fHealth += 25;
                     nItemNum[5]--;
+                    nThirstBuffer = 0;
+                    fThirst += 25;
                     if (fHealth > 100) {
                         fHealth = 100;
                     }
@@ -885,15 +889,24 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
     public void statsBars() {
         SR.begin(ShapeRenderer.ShapeType.Filled);
+        
+        if(fArmor > fHealth) {
+        SR.setColor(Color.valueOf("#d1d1d1"));
+        SR.rect(35, Gdx.graphics.getHeight() - 32, fArmor * 2, 15);
+        }
+        
         if (fHealth <= 40) {
             SR.setColor(Color.FIREBRICK);
         } else {
             SR.setColor(Color.RED);
         }
         SR.rect(35, Gdx.graphics.getHeight() - 32, fHealth * 2, 15);
-
+        
+        if(fArmor <= fHealth) {
         SR.setColor(Color.valueOf("#d1d1d1"));
         SR.rect(35, Gdx.graphics.getHeight() - 32, fArmor * 2, 15);
+        
+        }
 
         SR.setColor(Color.GRAY);
         SR.rect(35, Gdx.graphics.getHeight() - 32 - 7, fStaminaMax, 5);
@@ -1134,6 +1147,19 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
             }
         } else if (isSane == false) {
             nSane = 0;
+        }
+    }
+    public void thirst() {
+        nThirstBuffer++;
+        System.out.println(nThirstBuffer);
+        if(nThirstBuffer >= 3000) {
+            nThirstBuffer = 3000;
+            if(fThirst >= 0) {
+                fThirst -= 0.005f;    
+            }
+            if(fHealth >= 0 && fThirst <= 0) {
+                fHealth -= 0.01f;
+            }
         }
     }
 
