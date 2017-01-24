@@ -58,13 +58,14 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     ShapeRenderer SR;
     SpriteBatch batch, batchAction;
     BitmapFont screenName;
-    Sprite sprVlad, sprLogic;
+    
     Random ranGen = new Random();
-    Texture txSheet, txBackground, txTemp, txOne, txShadow, txWater;
-    Animation araniVlad[];
-    TextureRegion trTemp, trHouse;// a single temporary texture region
-    int fW, fH, fSx, fSy; // height and width of SpriteSheet image - and the starting upper coordinates on the Sprite Sheet
-    int nFrame, nPos, nBar = 0, nBarWidth = 0;
+    Texture txSheet, txBackground, txWater, txSheetShadow;
+    Animation araniVlad[], araniShadow[];
+    TextureRegion trPlayer, trShadow;// a single temporary texture region
+    
+    int nBar = 0, nBarWidth = 0;
+    int  nFrame, nPos, nShadowFrame, nShadowPos;
     int nX, nY;
 
     float fSpeed;
@@ -151,17 +152,23 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         TiledObjectUtil.parseTiledObjectLayer(world, map.getLayers().get("Object Layer 1").getObjects());
 
         player = createBox(ranGen.nextInt((700 - 300) + 1) + 300, ranGen.nextInt((1500 - 1300) + 1) + 1300, 13, 5, false);
-        shadowDave = createBox(100, 100, 13, 5, false);
-
-//        platform = createBox(0, 0, 64, 32, true);
+        shadowDave = createBox(ranGen.nextInt((700 - 300) + 1) + 300, ranGen.nextInt((1500 - 1300) + 1) + 1300, 13, 5, false);
+        
         nFrame = 0;
         nPos = 0; // the position in the SpriteSheet - 0 to 7
+        nShadowPos = 0;
+        nShadowFrame = 0;
+        
+        txSheetShadow = new Texture("shadowSprite.png");
         txSheet = new Texture("playerSprite.png");
         txWater = new Texture("water.png");
         txGroundTorch = new Texture("groundTorch.png");
         txWater.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         araniVlad = new Animation[18];
+        araniShadow = new Animation[18];
         playerSprite(5.2f);
+        shadowSprite(4.4f);
+        //shadowSprite(5.2f);
 
         setupGUI();
         btnInvListener();
@@ -197,19 +204,20 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         frameAnimation();
-        trTemp = araniVlad[nPos].getKeyFrame(nFrame, true);
+        nShadowFrame++;
+        trPlayer = araniVlad[nPos].getKeyFrame(nFrame, true);
+        trShadow = araniShadow[nShadowPos].getKeyFrame(nShadowFrame, true);
         daynight();
         updateItems();
         torchLightFlicker();
-//        System.out.println("X = " + Gdx.input.getX()+ ", Y = " + (Gdx.graphics.getHeight() - Gdx.input.getY()));
-//        System.out.println("PLAYER X = " + player.getPosition().x * PPM + ", PLAYER Y = " + player.getPosition().y * PPM);
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         batch.draw(txWater, -129, -133, 32, 32, 4000, 2500); // makes water infinite
         batch.end();
         tmr.render();
         batch.begin();
-        batch.draw(trTemp, player.getPosition().x * PPM - 16, player.getPosition().y * PPM - 5);
+        batch.draw(trPlayer, player.getPosition().x * PPM - 16, player.getPosition().y * PPM - 5);
+        batch.draw(trShadow, shadowDave.getPosition().x * PPM - 16, shadowDave.getPosition().y * PPM - 5);
         batch.end();
         treeRender.render();
         //b2dr.render(world, camera.combined.scl(PPM));
@@ -234,7 +242,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         thirst();
         Death();
         //Test death screen
-        //hitDamage(0.1f);
+        hitDamage(0.1f);
     }
 
     @Override
@@ -265,9 +273,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         txSheet.dispose();
         txBackground.dispose();
-        txTemp.dispose();
-        txOne.dispose();
-        txShadow.dispose();
         txWater.dispose();
 
         SR.dispose();
@@ -395,6 +400,8 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     }
 
     public void playerSprite(float nAniSpeed) {
+        Sprite sprVlad;
+        int fW, fH, fSx, fSy; // height and width of SpriteSheet image - and the starting upper coordinates on the Sprite Sheet
         fW = txSheet.getWidth() / 9;
         fH = txSheet.getHeight() / 2;
         for (int i = 0; i < 9; i++) {
@@ -409,6 +416,23 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
 
         }
     }
+    public void shadowSprite(float nAniSpeed) {
+        Sprite sprShadow;
+        int fW, fH, fSx, fSy; // height and width of SpriteSheet image - and the starting upper coordinates on the Sprite Sheet
+        fW = txSheetShadow.getWidth() / 9;
+        fH = txSheetShadow.getHeight() / 2;
+        for (int i = 0; i < 9; i++) {
+            Sprite[] arSprVlad = new Sprite[9];
+            for (int j = 0; j < 9; j++) {
+                fSx = j * fW;
+                fSy = i * fH;
+                sprShadow = new Sprite(txSheetShadow, fSx, fSy, fW, fH);
+                arSprVlad[j] = new Sprite(sprShadow);
+            }
+            araniShadow[i] = new Animation(nAniSpeed, arSprVlad);
+
+        }
+    }    
 
     public void frameAnimation() {
         if (!isMining) {
@@ -1151,7 +1175,6 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
     }
     public void thirst() {
         nThirstBuffer++;
-        System.out.println(nThirstBuffer);
         if(nThirstBuffer >= 3000) {
             nThirstBuffer = 3000;
             if(fThirst >= 0) {

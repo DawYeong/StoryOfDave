@@ -13,9 +13,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import dave.game.GamMenu;
 import dave.game.TbMenu;
 import dave.game.TbsMenu;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import static utils.Constants.*;
 
 /**

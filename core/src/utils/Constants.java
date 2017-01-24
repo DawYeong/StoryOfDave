@@ -1,16 +1,6 @@
 package utils;
 
-import box2dLight.PointLight;
-import box2dLight.RayHandler;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -20,7 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import dave.game.TbGUI;
 import dave.game.TbsGUI;
 import dave.game.TbsHotbar;
-import java.util.Random;
 
 public final class Constants {
 
