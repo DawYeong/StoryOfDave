@@ -241,6 +241,7 @@ public class ScrPlay extends ApplicationAdapter implements Screen, InputProcesso
         sanity();
         thirst();
         Death();
+        
         //Test death screen
         hitDamage(0.1f);
     }
